@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Dashboard Pro</title>
+    <!-- Tailwind CSS para el layout base y utilidades rápidas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #000000;
+            --bg-panel: #111111;
+            --bg-border: #333333;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            
+            /* Paleta de colores basada en la imagen de referencia */
+            --c-alkali: #b36315;          /* Alcalinos (Naranja oscuro) */
+            --c-alkaline: #a88424;       /* Alcalinotérreos (Mostaza) */
+            --c-transition: #9e2a2b;     /* Transición (Rojo oscuro) */
+            --c-post-transition: #175676;/* Metal del bloque p (Azul) */
+            --c-metalloid: #2a7266;      /* Semimetal (Verde azulado) */
+            --c-nonmetal: #417505;       /* Otros no metales (Verde claro) */
+            --c-halogen: #7a7a7a;        /* Halógenos (Nota: en la img no hay halógenos marcados diferente, usaremos un tono genérico si aplica) */
+            --c-noble: #5e35b1;          /* Gases Nobles (Morado) */
+            --c-lanthanide: #6b4d30;     /* Lantánidos (Marrón) */
+            --c-actinide: #882d60;       /* Actínidos (Magenta oscuro) */
+            --c-unknown: #333333;        /* Desconocido */
+
+            /* Estados de la materia */
+            --c-solid: #ffffff;
+            --c-liquid: #3b82f6;
+            --c-gas: #ef4444;
+            --c-synthetic: #9ca3af;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        /* --- Panel Lateral (Dashboard) --- */
+        .side-panel {
+            width: 320px;
+            background-color: var(--bg-main);
+            border-right: 1px solid var(--bg-border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex-shrink: 0;
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        /* Bloque principal del elemento seleccionado */
+        .hero-block {
+            display: flex;
+            padding: 20px;
+            min-height: 180px;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        .hero-main-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            flex: 1;
+        }
+
+        .hero-number {
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 300;
+        }
+
+        .hero-symbol {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin: -5px 0;
+        }
+
+        .hero-name {
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 2px;
+        }
+        
+        .hero-mass {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .hero-shells {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0.9;
+        }
+
+        /* Lista de propiedades técnica */
+        .props-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .prop-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.85rem;
+        }
+
+        .prop-item:hover {
+            background-color: #111;
+        }
+
+        .prop-label {
+            color: #999;
+            flex: 1;
+        }
+
+        .prop-value {
+            text-align: right;
+            font-weight: 500;
+            max-width: 60%;
+        }
+
+        /* --- Área Principal de la Tabla --- */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #1a1a1a;
+            position: relative;
+            overflow: hidden; /* Control principal */
+        }
+
+        /* Controles superiores (Temperatura simulada y enlaces) */
+        .top-controls {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--bg-border);
+            background-color: var(--bg-main);
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .temp-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .temp-gradient {
+            height: 10px;
+            flex: 1;
+            background: linear-gradient(90deg, #3b82f6 0%, #a855f7 30%, #eab308 60%, #ef4444 100%);
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .temp-handle {
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: -2px;
+            left: 20%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        /* --- Envoltorio de la Tabla (Scrollable) --- */
+        .table-scroll-wrapper {
+            flex: 1;
+            overflow: auto; /* Permite scroll vertical y horizontal */
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        /* Cuadrícula de la Tabla (CSS Grid estricto) */
+        .ptable {
+            display: grid;
+            grid-template-columns: 30px repeat(18, minmax(55px, 1fr)); /* Columna de eje + 18 grupos */
+            grid-template-rows: 30px repeat(7, minmax(65px, 1fr)) 20px repeat(2, minmax(65px, 1fr)); /* Eje + 7 periodos + hueco + lant/act */
+            gap: 2px;
+            min-width: 1100px; /* Evita que se aplaste demasiado en móviles */
+        }
+
+        /* Etiquetas de los ejes */
+        .axis-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        /* Celda de Elemento Base */
+        .element {
+            position: relative;
+            background-color: var(--family-color, var(--bg-panel));
+            border: 1px solid #333;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .element:hover {
+            z-index: 10;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+            border-color: #666;
+            filter: brightness(1.2);
+        }
+
+        .element.active {
+            z-index: 11;
+            border-color: #fff;
+            box-shadow: 0 0 20px var(--family-color, #fff);
+            transform: scale(1.1);
+        }
+
+        .element.dimmed {
+            opacity: 0.15;
+            filter: grayscale(80%);
+        }
+
+        /* Contenido de la Celda */
+        .el-number {
+            font-size: 0.65rem;
+            line-height: 1;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .el-symbol {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-top: 2px;
+            text-align: left;
+            /* Color del estado de la materia (sólido, líquido, gas) */
+            color: var(--state-color, #fff); 
+        }
+
+        .el-name {
+            font-size: 0.45rem;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: rgba(255,255,255,0.7);
+            margin-top: auto;
+        }
+
+        .el-mass {
+            font-size: 0.45rem;
+            text-align: left;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Bloque central superior (Leyenda y Categorías) */
+        .center-legend {
+            grid-column: 3 / 13;
+            grid-row: 2 / 5;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .legend-states {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .state-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+        }
+        .state-box {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+
+        .legend-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-content: flex-start;
+        }
+
+        .cat-box {
+            font-size: 0.65rem;
+            padding: 4px 8px;
+            background-color: var(--family-color);
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px; /* Imitando la imagen */
+            transition: all 0.2s;
+        }
+        
+        .cat-box:hover {
+            border-color: #fff;
+            filter: brightness(1.2);
+        }
+
+        /* Separador visual para Lantánidos/Actínidos en la tabla principal */
+        .inner-transition-marker {
+            grid-column: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            background-color: #111;
+            border: 1px dashed #555;
+            color: #999;
+        }
+        .marker-lan { grid-row: 7; background-color: var(--c-lanthanide); color: white;} /* Period 6, Group 3 spot */
+        .marker-act { grid-row: 8; background-color: var(--c-actinide); color: white;} /* Period 7, Group 3 spot */
+
+
+        /* Barra inferior estilo "Footer Nav" de la imagen */
+        .bottom-nav {
+            background-color: var(--bg-main);
+            border-top: 1px solid var(--bg-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-around;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: #aaa;
+            flex-shrink: 0;
+        }
+        .bottom-nav span:hover { color: #fff; cursor: pointer; }
+
+        /* Estilos de Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* --- Responsividad --- */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; }
+            .side-panel {
+                width: 100%;
+                height: 35vh; /* Panel arriba en móviles */
+                border-right: none;
+                border-bottom: 2px solid var(--bg-border);
+            }
+            .hero-block { min-height: 120px; padding: 15px; }
+            .hero-symbol { font-size: 3rem; }
+            .hero-number { font-size: 1.5rem; }
+            .table-scroll-wrapper { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Panel Izquierdo (Dashboard de Información) -->
+    <aside class="side-panel" id="side-panel">
+        
+        <!-- Hero Header del Elemento seleccionado -->
+        <div class="hero-block" id="hero-bg" style="background-color: var(--c-unknown);">
+            <div class="hero-main-info">
+                <div class="hero-number" id="el-num">--</div>
+                <div class="hero-symbol" id="el-sym">--</div>
+                <div class="hero-name" id="el-name">Selecciona un elemento</div>
+                <div class="hero-mass" id="el-mass">--</div>
+            </div>
+            <div class="hero-shells" id="el-shells">
+                <!-- Capas insertadas por JS -->
+            </div>
+        </div>
+
+        <!-- Lista de Propiedades Detalladas -->
+        <ul class="props-list">
+            <li class="prop-item">
+                <span class="prop-label">Serie</span>
+                <span class="prop-value" id="prop-serie">--</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Wikipedia</span>
+                <span class="prop-value" style="color: #3b82f6; cursor:pointer;" id="prop-wiki">Enlace ↗</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Estado a 0 °C</span>
+                <span class="prop-value" id="prop-state">--</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Peso Atómico</span>
+                <span class="prop-value"><span id="prop-weight">--</span> u</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Niveles de Energía</span>
+                <span class="prop-value" id="prop-levels">--</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Electronegatividad</span>
+                <span class="prop-value" id="prop-electro">--</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Punto de Fusión</span>
+                <span class="prop-value"><span id="prop-melt">--</span> °C</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Punto de Ebullición</span>
+                <span class="prop-value"><span id="prop-boil">--</span> °C</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Radio calculado</span>
+                <span class="prop-value"><span id="prop-radius">--</span> pm</span>
+            </li>
+            <li class="prop-item">
+                <span class="prop-label">Densidad, STP</span>
+                <span class="prop-value"><span id="prop-density">--</span> kg/m³</span>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Área Principal Derecha -->
+    <main class="main-area">
+        
+        <!-- Controles Superiores -->
+        <header class="top-controls">
+            <span style="font-weight: 500; font-size: 0.9rem;">Temperatura</span>
+            <button class="bg-gray-800 hover:bg-gray-700 text-white w-6 h-6 rounded flex items-center justify-center">-</button>
+            <div class="temp-slider-container">
+                <div class="temp-gradient">
+                    <div class="temp-handle"></div>
+                </div>
+            </div>
+            <button class="bg-gray-800 hover:bg-gray-700 text-white w-6 h-6 rounded flex items-center justify-center">+</button>
+            
+            <div class="ml-auto flex gap-4 text-sm text-gray-400 font-mono">
+                <span>0 °C</span>
+                <span>32 °F</span>
+                <span class="text-white">273 K</span>
+            </div>
+        </header>
+
+        <!-- Contenedor con Scroll para la Tabla -->
+        <div class="table-scroll-wrapper">
+            <div class="ptable" id="ptable">
+                <!-- Los ejes y elementos se generarán por JavaScript para mantener el HTML limpio y escalable -->
+                
+                <!-- Área central (Leyenda y Categorías) incrustada en el Grid -->
+                <div class="center-legend">
+                    
+                    <!-- Estados de la Materia -->
+                    <div class="legend-states">
+                        <div class="state-item">
+                            <div class="state-box" style="border-color: #fff;">C</div> <span>Sólido</span>
+                        </div>
+                        <div class="state-item">
+                            <div class="state-box" style="border-color: var(--c-liquid); color: var(--c-liquid);">Hg</div> <span>Líquido</span>
+                        </div>
+                        <div class="state-item">
+                            <div class="state-box" style="border-color: var(--c-gas); color: var(--c-gas);">H</div> <span>Gas</span>
+                        </div>
+                        <div class="state-item">
+                            <div class="state-box" style="border-color: var(--c-synthetic); color: var(--c-synthetic);">Rf</div> <span>Desconocido</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Categorías (Familias) -->
+                    <div class="legend-categories" id="legend-categories">
+                        <!-- Generado por JS -->
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Barra de Navegación Inferior -->
+        <footer class="bottom-nav">
+            <span>Creado para la Tarea de Química</span>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- 1. CONFIGURACIÓN DE FAMILIAS ---
+        const categories = {
+            'alkali': { name: 'Alcalino', color: 'var(--c-alkali)' },
+            'alkaline': { name: 'Alcalinotérreos', color: 'var(--c-alkaline)' },
+            'lanthanide': { name: 'Lantánidos', color: 'var(--c-lanthanide)' },
+            'actinide': { name: 'Actínidos', color: 'var(--c-actinide)' },
+            'transition': { name: 'Metal de transición', color: 'var(--c-transition)' },
+            'post-transition': { name: 'Metal del bloque p', color: 'var(--c-post-transition)' },
+            'metalloid': { name: 'Semimetal', color: 'var(--c-metalloid)' },
+            'nonmetal': { name: 'Otros no metales', color: 'var(--c-nonmetal)' },
+            'noble': { name: 'Gases nobles', color: 'var(--c-noble)' },
+            'unknown': { name: 'Desconocido', color: 'var(--c-unknown)' }
+        };
+
+        // --- 2. BASE DE DATOS COMPLETA (Selección representativa pero estructurada para 118) ---
+        // Contiene la ubicación exacta en el grid (columna 'c', fila 'r').
+        // Estados: 'Solid', 'Liquid', 'Gas', 'Unknown'
+        const elementsData = [
+            // Periodo 1
+            { n: 1, sym: 'H', name: 'Hidrógeno', mass: '1,008', c: 2, r: 2, cat: 'nonmetal', state: 'Gas', shells: [1], electro: '2,20', melt: '-259', boil: '-252' },
+            { n: 2, sym: 'He', name: 'Helio', mass: '4,0026', c: 19, r: 2, cat: 'noble', state: 'Gas', shells: [2], electro: 'N/A', melt: '-272', boil: '-268' },
+            
+            // Periodo 2
+            { n: 3, sym: 'Li', name: 'Litio', mass: '6,94', c: 2, r: 3, cat: 'alkali', state: 'Solid', shells: [2, 1], electro: '0,98', melt: '180', boil: '1342' },
+            { n: 4, sym: 'Be', name: 'Berilio', mass: '9,0122', c: 3, r: 3, cat: 'alkaline', state: 'Solid', shells: [2, 2], electro: '1,57' },
+            { n: 5, sym: 'B', name: 'Boro', mass: '10,81', c: 14, r: 3, cat: 'metalloid', state: 'Solid', shells: [2, 3] },
+            { n: 6, sym: 'C', name: 'Carbono', mass: '12,011', c: 15, r: 3, cat: 'nonmetal', state: 'Solid', shells: [2, 4] },
+            { n: 7, sym: 'N', name: 'Nitrógeno', mass: '14,007', c: 16, r: 3, cat: 'nonmetal', state: 'Gas', shells: [2, 5] },
+            { n: 8, sym: 'O', name: 'Oxígeno', mass: '15,999', c: 17, r: 3, cat: 'nonmetal', state: 'Gas', shells: [2, 6] },
+            { n: 9, sym: 'F', name: 'Flúor', mass: '18,998', c: 18, r: 3, cat: 'nonmetal', state: 'Gas', shells: [2, 7] },
+            { n: 10, sym: 'Ne', name: 'Neón', mass: '20,180', c: 19, r: 3, cat: 'noble', state: 'Gas', shells: [2, 8] },
+
+            // Periodo 3
+            { n: 11, sym: 'Na', name: 'Sodio', mass: '22,990', c: 2, r: 4, cat: 'alkali', state: 'Solid', shells: [2, 8, 1] },
+            { n: 12, sym: 'Mg', name: 'Magnesio', mass: '24,305', c: 3, r: 4, cat: 'alkaline', state: 'Solid', shells: [2, 8, 2] },
+            { n: 13, sym: 'Al', name: 'Aluminio', mass: '26,982', c: 14, r: 4, cat: 'post-transition', state: 'Solid', shells: [2, 8, 3] },
+            { n: 14, sym: 'Si', name: 'Silicio', mass: '28,085', c: 15, r: 4, cat: 'metalloid', state: 'Solid', shells: [2, 8, 4] },
+            { n: 15, sym: 'P', name: 'Fósforo', mass: '30,974', c: 16, r: 4, cat: 'nonmetal', state: 'Solid', shells: [2, 8, 5] },
+            { n: 16, sym: 'S', name: 'Azufre', mass: '32,06', c: 17, r: 4, cat: 'nonmetal', state: 'Solid', shells: [2, 8, 6] },
+            { n: 17, sym: 'Cl', name: 'Cloro', mass: '35,45', c: 18, r: 4, cat: 'nonmetal', state: 'Gas', shells: [2, 8, 7] },
+            { n: 18, sym: 'Ar', name: 'Argón', mass: '39,948', c: 19, r: 4, cat: 'noble', state: 'Gas', shells: [2, 8, 8] },
+
+            // Periodo 4 (Inicio de Transición)
+            { n: 19, sym: 'K', name: 'Potasio', mass: '39,098', c: 2, r: 5, cat: 'alkali', state: 'Solid', shells: [2, 8, 8, 1] },
+            { n: 20, sym: 'Ca', name: 'Calcio', mass: '40,078', c: 3, r: 5, cat: 'alkaline', state: 'Solid', shells: [2, 8, 8, 2] },
+            { n: 21, sym: 'Sc', name: 'Escandio', mass: '44,956', c: 4, r: 5, cat: 'transition', state: 'Solid', shells: [2, 8, 9, 2] },
+            { n: 26, sym: 'Fe', name: 'Hierro', mass: '55,845', c: 9, r: 5, cat: 'transition', state: 'Solid', shells: [2, 8, 14, 2] },
+            { n: 29, sym: 'Cu', name: 'Cobre', mass: '63,546', c: 12, r: 5, cat: 'transition', state: 'Solid', shells: [2, 8, 18, 1] },
+            { n: 35, sym: 'Br', name: 'Bromo', mass: '79,904', c: 18, r: 5, cat: 'nonmetal', state: 'Liquid', shells: [2, 8, 18, 7] },
+
+            // Periodo 5 (Ytrio solicitado)
+            { n: 37, sym: 'Rb', name: 'Rubidio', mass: '85,468', c: 2, r: 6, cat: 'alkali', state: 'Solid', shells: [2, 8, 18, 8, 1] },
+            { n: 38, sym: 'Sr', name: 'Estroncio', mass: '87,62', c: 3, r: 6, cat: 'alkaline', state: 'Solid', shells: [2, 8, 18, 8, 2] },
+            { n: 39, sym: 'Y', name: 'Itrio', mass: '88,906', c: 4, r: 6, cat: 'transition', state: 'Solid', shells: [2, 8, 18, 9, 2], electro: '1,22', melt: '1526', boil: '3345', density: '4472' },
+            { n: 47, sym: 'Ag', name: 'Plata', mass: '107,87', c: 12, r: 6, cat: 'transition', state: 'Solid', shells: [2, 8, 18, 18, 1] },
+            { n: 54, sym: 'Xe', name: 'Xenón', mass: '131,29', c: 19, r: 6, cat: 'noble', state: 'Gas', shells: [2, 8, 18, 18, 8] },
+
+            // Periodo 6
+            { n: 55, sym: 'Cs', name: 'Cesio', mass: '132,91', c: 2, r: 7, cat: 'alkali', state: 'Solid', shells: [2, 8, 18, 18, 8, 1] },
+            { n: 56, sym: 'Ba', name: 'Bario', mass: '137,33', c: 3, r: 7, cat: 'alkaline', state: 'Solid', shells: [2, 8, 18, 18, 8, 2] },
+            // Lantánidos (Fila separada abajo)
+            { n: 57, sym: 'La', name: 'Lantano', mass: '138,91', c: 4, r: 9, cat: 'lanthanide', state: 'Solid', shells: [2, 8, 18, 18, 9, 2] },
+            { n: 72, sym: 'Hf', name: 'Hafnio', mass: '178,49', c: 5, r: 7, cat: 'transition', state: 'Solid', shells: [2, 8, 18, 32, 10, 2] },
+            { n: 79, sym: 'Au', name: 'Oro', mass: '196,97', c: 12, r: 7, cat: 'transition', state: 'Solid', shells: [2, 8, 18, 32, 18, 1] },
+            { n: 80, sym: 'Hg', name: 'Mercurio', mass: '200,59', c: 13, r: 7, cat: 'transition', state: 'Liquid', shells: [2, 8, 18, 32, 18, 2] },
+
+            // Periodo 7 (Elementos superpesados y Moscovio solicitado)
+            { n: 87, sym: 'Fr', name: 'Francio', mass: '(223)', c: 2, r: 8, cat: 'alkali', state: 'Solid', shells: [2, 8, 18, 32, 18, 8, 1] },
+            { n: 88, sym: 'Ra', name: 'Radio', mass: '(226)', c: 3, r: 8, cat: 'alkaline', state: 'Solid', shells: [2, 8, 18, 32, 18, 8, 2] },
+            // Actínidos
+            { n: 89, sym: 'Ac', name: 'Actinio', mass: '(227)', c: 4, r: 10, cat: 'actinide', state: 'Solid', shells: [2, 8, 18, 32, 18, 9, 2] },
+            { n: 92, sym: 'U', name: 'Uranio', mass: '238,03', c: 7, r: 10, cat: 'actinide', state: 'Solid', shells: [2, 8, 18, 32, 21, 9, 2] },
+            { n: 104, sym: 'Rf', name: 'Rutherfordio', mass: '(267)', c: 5, r: 8, cat: 'transition', state: 'Unknown', shells: [2, 8, 18, 32, 32, 10, 2] },
+            
+            // Moscovio (El de la imagen)
+            { n: 115, sym: 'Mc', name: 'Moscovio', mass: '(290)', c: 16, r: 8, cat: 'post-transition', state: 'Unknown', shells: [2, 8, 18, 32, 32, 18, 5], electro: 'N/A', melt: 'N/A', boil: 'N/A', density: 'N/A' },
+            { n: 118, sym: 'Og', name: 'Oganesón', mass: '(294)', c: 19, r: 8, cat: 'noble', state: 'Unknown', shells: [2, 8, 18, 32, 32, 18, 8] }
+        ];
+
+        let currentTempC = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const ptable = document.getElementById('ptable');
+            const legendCatContainer = document.getElementById('legend-categories');
+            let currentActiveCategory = null;
+
+            // 1. Dibujar Ejes de la cuadrícula
+            // Columnas (Grupos 1-18) - Empezando en col 2
+            for(let i=1; i<=18; i++) {
+                let el = document.createElement('div');
+                el.className = 'axis-label';
+                el.style.gridRow = '1';
+                el.style.gridColumn = i + 1;
+                el.textContent = i;
+                ptable.appendChild(el);
+            }
+            // Filas (Periodos 1-7) - Empezando en row 2
+            for(let i=1; i<=7; i++) {
+                let el = document.createElement('div');
+                el.className = 'axis-label';
+                el.style.gridColumn = '1';
+                el.style.gridRow = i + 1;
+                el.textContent = i;
+                ptable.appendChild(el);
+            }
+
+            // Marcadores en la tabla principal indicando dónde van los lantánidos y actínidos
+            const markerLan = document.createElement('div');
+            markerLan.className = 'inner-transition-marker marker-lan';
+            markerLan.textContent = '57-71';
+            ptable.appendChild(markerLan);
+
+            const markerAct = document.createElement('div');
+            markerAct.className = 'inner-transition-marker marker-act';
+            markerAct.textContent = '89-103';
+            ptable.appendChild(markerAct);
+
+            // 2. Construir Menú de Categorías (Leyenda)
+            Object.entries(categories).forEach(([key, cat]) => {
+                const btn = document.createElement('div');
+                btn.className = 'cat-box';
+                btn.style.setProperty('--family-color', cat.color);
+                btn.textContent = cat.name;
+                
+                btn.addEventListener('click', () => filterByCategory(key));
+                legendCatContainer.appendChild(btn);
+            });
+
+            // 3. Renderizar Elementos de la base de datos
+            elementsData.forEach(el => {
+                const cell = document.createElement('div');
+                cell.className = `element el-${el.n}`;
+                cell.style.gridColumn = el.c;
+                cell.style.gridRow = el.r;
+                
+                // Aplicar variables CSS para colores
+                cell.style.setProperty('--family-color', categories[el.cat].color);
+                
+                // Color del texto del símbolo según su estado físico
+                let stateColor = '#fff'; // Solid default
+                if(el.state === 'Liquid') stateColor = 'var(--c-liquid)';
+                if(el.state === 'Gas') stateColor = 'var(--c-gas)';
+                if(el.state === 'Unknown') stateColor = 'var(--c-synthetic)';
+                cell.style.setProperty('--state-color', stateColor);
+                
+                cell.dataset.cat = el.cat;
+
+                cell.innerHTML = `
+                    <div class="el-number">${el.n}</div>
+                    <div class="el-symbol">${el.sym}</div>
+                    <div class="el-name">${el.name}</div>
+                    <div class="el-mass">${el.mass}</div>
+                `;
+
+                cell.addEventListener('click', () => selectElement(el, cell));
+                ptable.appendChild(cell);
+            });
+
+            // --- Funciones de Interacción ---
+
+            function filterByCategory(catKey) {
+                const allCells = document.querySelectorAll('.element');
+                
+                if (currentActiveCategory === catKey) {
+                    // Desactivar filtro
+                    allCells.forEach(c => c.classList.remove('dimmed'));
+                    currentActiveCategory = null;
+                } else {
+                    // Activar filtro
+                    allCells.forEach(c => {
+                        if (c.dataset.cat === catKey) {
+                            c.classList.remove('dimmed');
+                        } else {
+                            c.classList.add('dimmed');
+                        }
+                    });
+                    currentActiveCategory = catKey;
+                }
+            }
+
+            function selectElement(data, cellNode) {
+                // Gestionar clases visuales (Highlight)
+                document.querySelectorAll('.element.active').forEach(c => c.classList.remove('active'));
+                if(cellNode) cellNode.classList.add('active');
+
+                // Actualizar el Dashboard Lateral
+                const heroBg = document.getElementById('hero-bg');
+                heroBg.style.backgroundColor = categories[data.cat].color;
+                
+                document.getElementById('el-num').textContent = data.n;
+                document.getElementById('el-sym').textContent = data.sym;
+                document.getElementById('el-name').textContent = data.name;
+                document.getElementById('el-mass').textContent = data.mass;
+
+                // Renderizar capas electrónicas (Niveles de energía a la derecha del hero)
+                const shellsContainer = document.getElementById('el-shells');
+                shellsContainer.innerHTML = '';
+                if(data.shells) {
+                    data.shells.forEach(num => {
+                        const div = document.createElement('div');
+                        div.textContent = num;
+                        shellsContainer.appendChild(div);
+                    });
+                }
+
+                // Actualizar Propiedades Técnicas
+                document.getElementById('prop-serie').textContent = categories[data.cat].name;
+                document.getElementById('prop-state').textContent = data.state === 'Unknown' ? 'Desconocido' : data.state === 'Solid' ? 'Sólido' : data.state === 'Liquid' ? 'Líquido' : 'Gas';
+                document.getElementById('prop-weight').textContent = data.mass;
+                document.getElementById('prop-levels').textContent = data.shells ? data.shells.join(', ') : 'N/A';
+                
+                // Mostrar datos físicos si existen o 'N/A'
+                const updateProp = (id, val) => {
+                    const el = document.getElementById(id);
+                    if(el) {
+                        if(val && val !== 'N/A') {
+                            el.textContent = val;
+                            el.parentElement.style.opacity = '1';
+                        } else {
+                            el.textContent = 'N/A';
+                            el.parentElement.style.opacity = '0.5'; // Atenuar si no hay dato
+                        }
+                    }
+                };
+
+                updateProp('prop-electro', data.electro);
+                updateProp('prop-melt', data.melt);
+                updateProp('prop-boil', data.boil);
+                updateProp('prop-density', data.density);
+                // (Radio, etc. se asumen N/A para esta demo a menos que se provean)
+                updateProp('prop-radius', data.radius); 
+            }
+
+            // Seleccionar el Moscovio (115) al inicio por defecto simulando la imagen
+            const defaultEl = elementsData.find(e => e.n === 115);
+            if(defaultEl) {
+                // Pequeño timeout para asegurar que el DOM dibujó la celda
+                setTimeout(() => {
+                    const cell = document.querySelector('.el-115');
+                    selectElement(defaultEl, cell);
+                }, 100);
+            }
+
+            // --- Lógica de Temperatura ---
+            const tempSliderHandle = document.querySelector('.temp-handle');
+            const tempGradient = document.querySelector('.temp-gradient');
+            let isDragging = false;
+
+            const tempMinC = -273.15;
+            const tempMaxC = 6000;
+            
+            // Función para actualizar estados basados en la temperatura
+            function updateStatesByTemp(tempC) {
+                elementsData.forEach(el => {
+                    const cell = document.querySelector(`.el-${el.n}`);
+                    if (!cell) return;
+
+                    let currentState = 'Unknown';
+                    const melt = parseFloat(el.melt);
+                    const boil = parseFloat(el.boil);
+
+                    if (el.melt !== 'N/A' && el.boil !== 'N/A' && !isNaN(melt) && !isNaN(boil)) {
+                        if (tempC < melt) {
+                            currentState = 'Solid';
+                        } else if (tempC >= melt && tempC < boil) {
+                            currentState = 'Liquid';
+                        } else {
+                            currentState = 'Gas';
+                        }
+                    } else if (el.melt !== 'N/A' && !isNaN(melt)) {
+                         if (tempC < melt) {
+                            currentState = 'Solid';
+                        } else {
+                             currentState = 'Liquid'; // Aproximación si solo hay p. fusión
+                        }
+                    } else if (el.boil !== 'N/A' && !isNaN(boil)) {
+                        if (tempC >= boil) {
+                            currentState = 'Gas';
+                        } else {
+                            currentState = 'Solid'; // Aproximación
+                        }
+                    } else {
+                        // Mantener el estado base si no hay datos de p. fusión/ebullición
+                        currentState = el.state;
+                    }
+
+                    // Actualizar color del símbolo según nuevo estado
+                    let stateColor = '#fff';
+                    if(currentState === 'Liquid') stateColor = 'var(--c-liquid)';
+                    if(currentState === 'Gas') stateColor = 'var(--c-gas)';
+                    if(currentState === 'Unknown') stateColor = 'var(--c-synthetic)';
+                    cell.style.setProperty('--state-color', stateColor);
+                });
+            }
+
+            function updateTempDisplay(percentage) {
+                // Calcular temperatura real (escala no lineal para mejor experiencia)
+                // Usamos una curva cuadrática para que haya más control a temperaturas bajas
+                const range = tempMaxC - tempMinC;
+                currentTempC = tempMinC + range * Math.pow(percentage, 2);
+                
+                // Si está cerca de 0, forzarlo a 0 para que coincida con la vista inicial
+                if(Math.abs(currentTempC) < 10) currentTempC = 0;
+
+                const tempF = (currentTempC * 9/5) + 32;
+                const tempK = currentTempC + 273.15;
+
+                // Actualizar labels en la UI (asumiendo que son los únicos span dentro de .ml-auto)
+                const tempDisplays = document.querySelectorAll('.top-controls .ml-auto span');
+                if(tempDisplays.length >= 3) {
+                    tempDisplays[0].textContent = `${Math.round(currentTempC)} °C`;
+                    tempDisplays[1].textContent = `${Math.round(tempF)} °F`;
+                    tempDisplays[2].textContent = `${Math.round(tempK)} K`;
+                }
+
+                updateStatesByTemp(currentTempC);
+            }
+
+            // Eventos del Slider
+            const setSliderPosition = (e) => {
+                const rect = tempGradient.getBoundingClientRect();
+                let x = e.clientX || (e.touches && e.touches[0].clientX);
+                if (x === undefined) return;
+                
+                let percentage = (x - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                
+                tempSliderHandle.style.left = `${percentage * 100}%`;
+                updateTempDisplay(percentage);
+            };
+
+            tempGradient.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                setSliderPosition(e);
+            });
+            
+            tempGradient.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                setSliderPosition(e);
+            }, {passive: true});
+
+            document.addEventListener('mousemove', (e) => {
+                if(isDragging) setSliderPosition(e);
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if(isDragging) setSliderPosition(e);
+            }, {passive: true});
+
+            document.addEventListener('mouseup', () => { isDragging = false; });
+            document.addEventListener('touchend', () => { isDragging = false; });
+
+            // Botones +/-
+            const btnMinus = document.querySelectorAll('.top-controls button')[0];
+            const btnPlus = document.querySelectorAll('.top-controls button')[1];
+            
+            if(btnMinus && btnPlus) {
+                btnMinus.addEventListener('click', () => {
+                    let rect = tempGradient.getBoundingClientRect();
+                    let currentLeft = parseFloat(tempSliderHandle.style.left) || 20; // 20% es el default aprox para 0C
+                    let newLeft = Math.max(0, currentLeft - 5);
+                    tempSliderHandle.style.left = `${newLeft}%`;
+                    updateTempDisplay(newLeft / 100);
+                });
+                btnPlus.addEventListener('click', () => {
+                    let rect = tempGradient.getBoundingClientRect();
+                    let currentLeft = parseFloat(tempSliderHandle.style.left) || 20;
+                    let newLeft = Math.min(100, currentLeft + 5);
+                    tempSliderHandle.style.left = `${newLeft}%`;
+                    updateTempDisplay(newLeft / 100);
+                });
+            }
+
+            // --- Lógica del Enlace a Wikipedia ---
+            const wikiLink = document.getElementById('prop-wiki');
+            if(wikiLink) {
+                wikiLink.addEventListener('click', () => {
+                    const elName = document.getElementById('el-name').textContent;
+                    if(elName && elName !== 'Selecciona un elemento') {
+                        // Construir URL de Wikipedia en español
+                        const url = `https://es.wikipedia.org/wiki/${encodeURIComponent(elName)}`;
+                        window.open(url, '_blank');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
